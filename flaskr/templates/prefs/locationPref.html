@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block header %}
+    <h1>{% block title %}Log in{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <form method="post">
+        <label for="city">City</label>
+        <input name="city" id="city">
+        <button id="searchLoc" type="button" onclick="searchCities()">Search Cities</button>
+        <input type="submit" value="Search">
+    </form>
+
+    <label for="locList">LocList</label>
+    <select name="locList" id="locList">
+    </select>
+
+    <script type=text/javascript>
+
+            function searchCities() {
+                var citySearchString = document.getElementById('city').value;
+                makeGetRequest("/searchcities/"+citySearchString+"/", populateCityResults);
+            }
+
+            function populateCityResults(httpRequest) {
+                if (httpRequest.readyState === XMLHttpRequest.DONE) {
+                    if (httpRequest.status === 200) {
+                        var info = JSON.parse(httpRequest.responseText);
+                        if (isEmpty(info)) {
+                            alert("There were no results.");
+                        } else {
+                            var selectElement = document.getElementById("locList");
+                            var i, L = selectElement.options.length - 1;
+                                for(i = L; i >= 0; i--) {
+                                    selectElement.remove(i);
+                                }
+                            for (index = 0; index < info.length; ++index) {
+                                var cityOpt = new Option(info[index][1] + ", " + info[index][2], info[index][0]);
+                                selectElement.append(cityOpt);
+                            }
+                        }
+                    } else {
+                        alert("There was an issue populating the city results.");
+                    }
+                }
+            }
+
+            function makeGetRequest(url, readyStateMethod) {
+                var httpRequest = new XMLHttpRequest();
+
+                if (!httpRequest) {
+                    alert('Cannot create an XMLHTTP instance');
+                    return false;
+                }
+                
+                httpRequest.onreadystatechange = function() {readyStateMethod(httpRequest)};
+                httpRequest.open("GET", url);
+                httpRequest.send();
+            }
+
+            function makePostRequest(url, readyStateMethod, data) {
+                var httpRequest = new XMLHttpRequest();
+
+                if (!httpRequest) {
+                    alert('Cannot create an XMLHTTP instance');
+                    return false;
+                }
+                
+                httpRequest.onreadystatechange = function() {readyStateMethod(httpRequest)};
+                httpRequest.open("POST", url);
+                httpRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                httpRequest.send(data);
+            }
+
+            function isEmpty(obj) {
+                for(var key in obj) {
+                    if(obj.hasOwnProperty(key))
+                        return false;
+                }
+                return true;
+            }
+
+    </script>
+
+{% endblock %}

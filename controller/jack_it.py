@@ -10,6 +10,7 @@ mgr = owm.weather_manager()
 @app.route('/')
 # default web page
 def hello_world():
-    obs = mgr.weather_at_id(5188029)
+    #obs = mgr.weather_at_id(5188029)
+    obs = mgr.weather_at_coords(40.3403132,-80.0512714)
     w = obs.weather
     return str(w.temperature('fahrenheit')['temp'])
