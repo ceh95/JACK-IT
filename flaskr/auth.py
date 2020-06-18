@@ -32,7 +32,14 @@ def register():
                 (username, generate_password_hash(password))
             )
             db.commit()
-            return redirect(url_for('userprefs/locationPref.html'))
+
+            user = db.execute(
+                'SELECT * FROM user WHERE username = ?', (username,)
+            ).fetchone()
+
+            session.clear()
+            session['user_id'] = user['id']
+            return redirect(url_for('userprefs.location'))
 
         flash(error)
 
@@ -57,7 +64,8 @@ def login():
         if error is None:
             session.clear()
             session['user_id'] = user['id']
-            return redirect(url_for('userprefs.location'))
+            session['location_id'] = user['location_id']
+            return redirect(url_for('index'))
 
         flash(error)
 

@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block header %}
+    <h1>{% block title %}Weather Prediction{% endblock %}</h1>
+    {% if g.user %}
+        <a class="action" href="{{ url_for('userprefs.location') }}">Change location</a>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <h1>Current Temperature: {{ weather.temperature('fahrenheit')['temp'] }}</h1>
+    <h1>Temperature Min: {{ weather.temperature('fahrenheit')['temp_min'] }}</h1>
+    <h1>Temperature Max: {{ weather.temperature('fahrenheit')['temp_max'] }}</h1>
+    <h1>Weather: {{weather.detailed_status }}</h1>
+    <h1>Wind: {{ weather.wind(unit='miles_hour')['speed'] }} mph</h1>
+    <h1>Wind Gust: {{ weather.wind(unit='miles_hour')['gust'] }} mph</h1>
+    <h1>Humidity: {{ weather.humidity }}% </h1>
+    <h1>Heat index: {{ heat_index }} </h1>
+    <h1>Rain amount: {{ weather.rain['1h'] }} </h1>
+    <h1>Snow amount: {{ weather.snow['1h'] }} </h1>
+{% endblock %}

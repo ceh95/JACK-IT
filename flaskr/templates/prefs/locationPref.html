@@ -6,15 +6,17 @@
 
 {% block content %}
     <form method="post">
-        <label for="city">City</label>
+        <p>What city do you want JACK-IT weather predictions for? (You can always change this later.</p>
+        <label for="city">Enter a city to search for, then choose from the list of results.</label>
         <input name="city" id="city">
         <button id="searchLoc" type="button" onclick="searchCities()">Search Cities</button>
-        <input type="submit" value="Search">
-    </form>
 
-    <label for="locList">LocList</label>
-    <select name="locList" id="locList">
-    </select>
+        <label for="locList">Results:</label>
+        <select name="locList" id="locList">
+        </select>
+
+        <input type="submit" value="Save Location Preferences">
+    </form>
 
     <script type=text/javascript>
 

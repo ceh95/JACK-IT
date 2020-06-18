@@ -14,12 +14,26 @@ bp = Blueprint('userprefs', __name__)
 @bp.route('/location', methods=('GET', 'POST'))
 @login_required
 def location():
-    
-    cityList = []
     if request.method == 'POST':
-        city = request.form['city']
+        city_id = request.form['locList']
+        user_id = session.get('user_id')
+        error = None
 
-    return render_template('prefs/locationPref.html', cityList=cityList)
+        if not city_id:
+            error = "Please choose a city from the dropdown."
+
+        if error is not None:
+            flash(error)
+        else:
+            db = get_db()
+            db.execute(
+                'UPDATE user SET location_id = '+ str(city_id) +' WHERE id = ' + str(user_id)
+            )
+            db.commit()
+            session['location_id'] = city_id
+            return redirect(url_for('index'))
+
+    return render_template('prefs/locationPref.html')
 
 @bp.route('/searchcities/<city_string>/', methods=["GET"])
 def searchCities(city_string=None):
