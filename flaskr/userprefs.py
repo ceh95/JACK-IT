@@ -35,6 +35,26 @@ def location():
 
     return render_template('prefs/locationPref.html')
 
+@bp.route('/clothing', methods=('GET', 'POST'))
+@login_required
+def clothing():
+    
+    # tank top/crop top (wear as little as possible)
+    # t-shirt
+    # long sleeve
+    # sweater
+    # jacket/hoodie
+    # coat
+    # heavy duty coat
+    # shorts/skirt
+    # long pants
+    # dress
+    # capri pants
+    # hat/gloves/scarf
+    # sunglasses
+
+    return render_template('prefs/clothingPref.html')
+
 @bp.route('/searchcities/<city_string>/', methods=["GET"])
 def searchCities(city_string=None):
     owm = weatherWrapper.getOWM()
