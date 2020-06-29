@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS user;
-DROP TABLE IF EXISTS post;
+DROP TABLE IF EXISTS clothes;
 
 CREATE TABLE user(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -8,11 +8,16 @@ CREATE TABLE user(
     location_id INTEGER 
 );
 
-CREATE TABLE post(
+CREATE TABLE clothes(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    author_id INTEGER NOT NULL,
-    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    title TEXT NOT NULL,
-    body TEXT NOT NULL,
-    FOREIGN KEY (author_id) REFERENCES user (id)
+    name TEXT NOT NULL
+);
+
+CREATE TABLE user_x_clothes(
+    user_id INTEGER NOT NULL,
+    clothes_id INTEGER NOT NULL,
+    FOREIGN KEY (user_id)
+       REFERENCES user (id)
+    FOREIGN KEY (clothes_id)
+        REFERENCES clothes (id)     
 );
