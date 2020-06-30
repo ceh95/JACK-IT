@@ -25,6 +25,15 @@ def init_db():
     with current_app.open_resource('schema.sql') as f:
         db.executescript(f.read().decode('utf8'))
 
+    init_clothing_objects()
+
+def init_clothing_objects():
+    db = get_db()
+    
+    clothes = [('Tank Top',), ('Short Sleeve Shirt',), ('Long Sleeve Shirt',), ('Sweater',), ('Jacket',), ('Hoodie',), ('Coat',), ('Shorts',), ('Capri Pants',), ('Long Pants',), ('Hat',), ('Scarf',), ('Gloves',), ('Sunglasses',), ('Sunscreen',)]
+    db.executemany('INSERT INTO clothes(name) VALUES (?)', clothes)
+    db.commit()
+
 @click.command('init_db')
 @with_appcontext
 def init_db_command():

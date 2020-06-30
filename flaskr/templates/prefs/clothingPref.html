@@ -5,30 +5,104 @@
 {% endblock %}
 
 {% block content %}
-    <form method="post">
+    <form id="clothesPrefForm" method="post">
+        <input type="hidden" id="listOfSelectedClothes" name="listOfSelectedClothes" value="">
         <p>Now it's time to tell us what clothing options you have.</p>
 
+        <div class="shirt-choice">
+            <h1>What shirt options do you have?</h1>
+        </div>
+        <div class="pants-choice hidden">
+            <h1>What pants options do you have?</h1>
+        </div>
+        <div class="acces-choice hidden">
+            <h1>What acessories do you have?</h1>
+        </div>
         <div class="grid-container">
-            <div class="grid-item">Tank Top</div>
-            <div class="grid-item">Short sleeve Shirt</div>
-            <div class="grid-item">Long Sleeve Shirt</div>
-            <div class="grid-item">Sweater</div>
-            <div class="grid-item">Jacket/Hoodie</div>
-            <div class="grid-item">Coat</div>
-            <div class="grid-item">Shorts</div>
-            <div class="grid-item">Capri Pants</div>
-            <div class="grid-item">Long Pants</div>
+            <div class="grid-item shirt-choice">Tank Top</div>
+            <div class="grid-item shirt-choice">Short Sleeve Shirt</div>
+            <div class="grid-item shirt-choice">Long Sleeve Shirt</div>
+            <div class="grid-item shirt-choice">Sweater</div>
+            <div class="grid-item shirt-choice">Jacket</div>
+            <div class="grid-item shirt-choice">Hoodie</div>
+            <div class="grid-item shirt-choice">Coat</div>
+            <div class="grid-item pants-choice hidden">Shorts</div>
+            <div class="grid-item pants-choice hidden">Capri Pants</div>
+            <div class="grid-item pants-choice hidden">Long Pants</div>
+            <div class="grid-item acces-choice hidden">Hat</div>
+            <div class="grid-item acces-choice hidden">Scarf</div>
+            <div class="grid-item acces-choice hidden">Gloves</div>
+            <div class="grid-item acces-choice hidden">Sunglasses</div>
+            <div class="grid-item acces-choice hidden">Sunscreen</div>
+        </div>
+
+        <div class="shirt-choice">
+            <button id="shirtBtn" type="button" >OK</button>
+        </div>
+        <div class="pants-choice hidden">
+            <button id="pantsBtn" type="button" >OK</button>
+        </div>
+        <div class="acces-choice hidden">
+            <button id="accesBtn" type="button" >OK</button>
         </div>
     </form>
 
     <script type=text/javascript>
+
+        // add listeners to all clothing choices that handle clicking them
         var elements = document.getElementsByClassName("grid-item")
         for (i=0; i<elements.length;i++) {
             elements[i].addEventListener("click", clothingSelected);
         }
 
+        // add listeners for shirt, pants, and accessories buttons
+        document.getElementById("shirtBtn").addEventListener("click", saveShirts);
+        document.getElementById("pantsBtn").addEventListener("click", savePants);
+        document.getElementById("accesBtn").addEventListener("click", saveAccessories);
+
         function clothingSelected() {
             this.classList.toggle("grid-item-chosen");
+        }
+
+        function saveShirts() {
+            var shirtElements = document.getElementsByClassName("shirt-choice")
+            for (i=0; i<shirtElements.length;i++) {
+                shirtElements[i].classList.toggle("hidden");
+            }
+            
+            var pantsElements = document.getElementsByClassName("pants-choice")
+            for (i=0; i<pantsElements.length;i++) {
+                pantsElements[i].classList.toggle("hidden");
+            }
+
+        }
+
+        function savePants() {
+            var pantsElements = document.getElementsByClassName("pants-choice")
+            for (i=0; i<pantsElements.length;i++) {
+                pantsElements[i].classList.toggle("hidden");
+            }
+            
+            var accesElements = document.getElementsByClassName("acces-choice")
+            for (i=0; i<accesElements.length;i++) {
+                accesElements[i].classList.toggle("hidden");
+            }
+        }
+
+        function saveAccessories() {
+            var selectedClothes = document.getElementsByClassName("grid-item-chosen")
+            var clothes="";
+            for (i=0; i<selectedClothes.length;i++) {
+                if (i==0) {
+                    clothes = clothes + selectedClothes[i].innerHTML;
+                } else {
+                    clothes = clothes + "," + selectedClothes[i].innerHTML;
+                }
+            }
+            
+            document.getElementById("listOfSelectedClothes").value = clothes;
+            document.getElementById("clothesPrefForm").submit();
+
         }
     </script>
 {% endblock %}

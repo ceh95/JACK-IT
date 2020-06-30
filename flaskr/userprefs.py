@@ -38,20 +38,35 @@ def location():
 @bp.route('/clothing', methods=('GET', 'POST'))
 @login_required
 def clothing():
-    
-    # tank top/crop top (wear as little as possible)
-    # t-shirt
-    # long sleeve
-    # sweater
-    # jacket/hoodie
-    # coat
-    # heavy duty coat
-    # shorts/skirt
-    # long pants
-    # dress
-    # capri pants
-    # hat/gloves/scarf
-    # sunglasses
+    if request.method == 'POST':
+        clothesListStr = request.form['listOfSelectedClothes']
+        
+        clothesList = clothesListStr.split(",")
+        error = None
+
+        if not clothesList:
+            error = "Please choose some clothes."
+
+        if error is not None:
+            flash(error)
+        else:
+            db = get_db()
+
+            db.execute('DELETE FROM user_x_clothes WHERE user_id=?', (session['user_id'],))
+            db.commit()
+            for clothes in clothesList:
+                c = db.execute(
+                    'SELECT id FROM clothes WHERE name = ?', (clothes,)
+                ).fetchone()
+
+                if c is not None:
+                    
+                    db.execute(
+                        'INSERT INTO user_x_clothes (user_id, clothes_id) VALUES (?, ?)',
+                        (session["user_id"],c['id'])
+                    )
+            db.commit()
+
 
     return render_template('prefs/clothingPref.html')
 

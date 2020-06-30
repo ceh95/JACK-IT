@@ -44,3 +44,7 @@ input[type=submit] { align-self: start; min-width: 10em; }
   .grid-item-chosen {
     background-color: rgba(34, 10, 247, 0.8);
   }
+
+  .hidden {
+    visibility: hidden;
+  }
