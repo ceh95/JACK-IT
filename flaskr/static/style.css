@@ -46,5 +46,5 @@ input[type=submit] { align-self: start; min-width: 10em; }
   }
 
   .hidden {
-    visibility: hidden;
+    display:none;
   }

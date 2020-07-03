@@ -20,6 +20,10 @@ def index():
 
     heat_index = getHeatIndex(w.temperature('fahrenheit')['temp'], w.humidity)
 
+    db = get_db()
+    clothesList = db.execute('SELECT * FROM user_x_clothes uxc JOIN clothes c on uxc.clothes_id = c.clothes_id WHERE uxc.user_id=?', (session['user_id'])).fetchall()
+    prediction = getPrediction(w, clothesList)
+
     return render_template('prediction/index.html', weather=w, heat_index=heat_index)
 
 def getHeatIndex(T, RH):
@@ -37,4 +41,59 @@ def getHeatIndex(T, RH):
         if RH > 85 and (T >= 80 and T <= 87):
             ADJ = ((RH-85)/10) * ((87-T)/5)
             ret = ret + ADJ
+    return ret
+
+def getWindChill(T,V):
+    if T < 50 and V > 3:
+        ret = 35.74 + 0.6215*T - 35.75*(V**0.16) + 0.4275*T*(V**0.16)
+    else:
+        ret = T
+    return ret
+
+def getPrediction(weather, clothesList):
+    # notes: each clothing type will have a temperature range and one or more additional triggers (eg. sunglasses if 
+    # sunny, raincoat if raining, etc.). If a user does not have a particular type of clothing, then default to wider
+    # range. (ex: no shorts, so suggest next lightest clothes). If the mins/maxes extend into another range, figure
+    # out what to do with that.
+    #
+    # ranges:
+    #   Tank Top: above 80
+    #   Short Sleeve Shirt: above 65
+    #   Long Sleeve Shirt: between 55 and 64
+    #   Sweater: between 40 and 64
+    #   Hoodie: between 40 and 64
+    #   Jacket: between 40 and 55
+    #   Coat: below 40
+    #   Shorts: above 70
+    #   Capri Pants: between 60 and 75
+    #   Long Pants: below 70
+    #   Hat: below 40
+    #   Scarf: below 30 or windy
+    #   Gloves: below 30 
+    #   Sunglasses: sunny
+    #   Sunscreen: sunny 
+    ret = ''
+    temp = weather.temperature('fahrenheit')['temp']
+    tempMin = weather.temperature('fahrenheit')['temp_min']
+    tempMax = weather.temperature('fahrenheit')['temp_max']
+    status = weather.detailed_status
+    windSpeed = weather.wind(unit='miles_hour')['speed']
+    if weather.wind(unit='miles_hour').get('gust'):
+        wind_gust = weather.wind(unit='miles_hour')['gust']
+    humidity = weather.humidity
+    if weather.rain.get('1h'):
+        rainAmount = weather.rain['1h']
+    if weather.snow.get('1h'):
+        snowAmount = weather.snow['1h']
+
+    heat_index_min = getHeatIndex(tempMin, humidity)
+    heat_index = getHeatIndex(temp, humidity)
+    heat_index_max = getHeatIndex(tempMax, humidity)
+
+    wind_chill_min = getWindChill(heat_index_min, windSpeed)
+    wind_chill = getWindChill(heat_index, windSpeed)
+    wind_chill_max = getWindChill(heat_index_max, windSpeed)
+
+    
+
     return ret

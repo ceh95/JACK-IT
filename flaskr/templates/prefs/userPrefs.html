@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block header %}
+    <h1>{% block title %}User Preferences{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <div>
+        <p>Location: {{ locationName }}</p>
+        <p><a href="/location">Change Location</a></p>
+        <label for='ulClothes'>Clothing Options:</label>
+        <ul id='ulClothes'>
+            {% for clothing in clothes %}
+                <li>{{ clothing['name'] }}</li>
+            {% endfor %}
+        </ul>
+        <p><a href="/clothing">Change Clothing Preferences</a></p>
+    </div>
+{% endblock %}

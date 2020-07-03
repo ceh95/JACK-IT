@@ -11,6 +11,17 @@ import json
 
 bp = Blueprint('userprefs', __name__)
 
+@bp.route('/userprefs', methods=['GET'])
+@login_required
+def userprefs():
+    db = get_db()
+
+    user = db.execute('SELECT * FROM user WHERE id=?', (session.get('user_id'),)).fetchone()
+    locationID = user['location_id']
+
+    clothesList = db.execute('SELECT * FROM clothes c JOIN user_x_clothes uxc ON c.id = uxc.clothes_id WHERE uxc.user_id=?', (session.get('user_id'),)).fetchall()
+    return render_template('prefs/userPrefs.html', locationName=locationID, clothes=clothesList)    
+
 @bp.route('/location', methods=('GET', 'POST'))
 @login_required
 def location():
@@ -66,6 +77,7 @@ def clothing():
                         (session["user_id"],c['id'])
                     )
             db.commit()
+            return redirect(url_for('index'))
 
 
     return render_template('prefs/clothingPref.html')
