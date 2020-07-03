@@ -11,7 +11,9 @@ CREATE TABLE user(
 
 CREATE TABLE clothes(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL
+    name TEXT NOT NULL,
+    temp_min INTEGER,
+    temp_max INTEGER
 );
 
 CREATE TABLE user_x_clothes(

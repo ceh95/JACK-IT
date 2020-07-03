@@ -31,7 +31,7 @@ def init_clothing_objects():
     db = get_db()
     
     clothes = [('Tank Top',), ('Short Sleeve Shirt',), ('Long Sleeve Shirt',), ('Sweater',), ('Jacket',), ('Hoodie',), ('Coat',), ('Shorts',), ('Capri Pants',), ('Long Pants',), ('Hat',), ('Scarf',), ('Gloves',), ('Sunglasses',), ('Sunscreen',)]
-    db.executemany('INSERT INTO clothes(name) VALUES (?)', clothes)
+    db.executemany('INSERT INTO clothes(name,temp_min,temp_max) VALUES (?)', clothes)
     db.commit()
 
 @click.command('init_db')

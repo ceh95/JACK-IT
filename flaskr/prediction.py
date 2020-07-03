@@ -5,6 +5,7 @@ from werkzeug.exceptions import abort
 from flaskr.auth import login_required
 from flaskr.db import get_db
 from flaskr.wrappers import weatherWrapper
+from flaskr.objects.clothing import Clothing
 
 import math
 bp = Blueprint('prediction', __name__)
@@ -21,7 +22,13 @@ def index():
     heat_index = getHeatIndex(w.temperature('fahrenheit')['temp'], w.humidity)
 
     db = get_db()
-    clothesList = db.execute('SELECT * FROM user_x_clothes uxc JOIN clothes c on uxc.clothes_id = c.clothes_id WHERE uxc.user_id=?', (session['user_id'])).fetchall()
+    dbReturn = db.execute('SELECT c.* FROM user_x_clothes uxc JOIN clothes c on uxc.clothes_id = c.id WHERE uxc.user_id=?', (session['user_id'],)).fetchall()
+    
+    clothesList = []
+    for clothes in dbReturn:
+        c = Clothing(clothes['name'], clothes['temp_min'], clothes['temp_max'])
+        clothesList.append(c)
+
     prediction = getPrediction(w, clothesList)
 
     return render_template('prediction/index.html', weather=w, heat_index=heat_index)
