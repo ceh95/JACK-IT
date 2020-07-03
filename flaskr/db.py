@@ -30,8 +30,8 @@ def init_db():
 def init_clothing_objects():
     db = get_db()
     
-    clothes = [('Tank Top',), ('Short Sleeve Shirt',), ('Long Sleeve Shirt',), ('Sweater',), ('Jacket',), ('Hoodie',), ('Coat',), ('Shorts',), ('Capri Pants',), ('Long Pants',), ('Hat',), ('Scarf',), ('Gloves',), ('Sunglasses',), ('Sunscreen',)]
-    db.executemany('INSERT INTO clothes(name,temp_min,temp_max) VALUES (?)', clothes)
+    clothes = [('Tank Top',80,-1), ('Short Sleeve Shirt',65,80), ('Long Sleeve Shirt',55,65), ('Sweater',40,65), ('Jacket',40,55), ('Hoodie',40,65), ('Coat',-1,40), ('Shorts',70,-1), ('Capri Pants',60,75), ('Long Pants',-1,70), ('Hat',-1,40), ('Scarf',-1,30), ('Gloves',-1,30), ('Sunglasses',-1,-1), ('Sunscreen',-1,-1)]
+    db.executemany('INSERT INTO clothes(name,temp_min,temp_max) VALUES (?,?,?)', clothes)
     db.commit()
 
 @click.command('init_db')

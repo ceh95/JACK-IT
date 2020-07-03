@@ -101,6 +101,9 @@ def getPrediction(weather, clothesList):
     wind_chill = getWindChill(heat_index, windSpeed)
     wind_chill_max = getWindChill(heat_index_max, windSpeed)
 
-    
-
+    suggestions = []
+    for c in clothesList:
+        if (c.minTemp == -1 or c.minTemp < wind_chill) and (c.maxTemp == -1 or c.maxTemp >= wind_chill):
+            suggestions.append(c)
+    ret = suggestions
     return ret
