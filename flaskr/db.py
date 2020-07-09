@@ -29,9 +29,11 @@ def init_db():
 
 def init_clothing_objects():
     db = get_db()
-    
-    clothes = [('Tank Top',80,-1), ('Short Sleeve Shirt',65,80), ('Long Sleeve Shirt',55,65), ('Sweater',40,65), ('Jacket',40,55), ('Hoodie',40,65), ('Coat',-1,40), ('Shorts',70,-1), ('Capri Pants',60,75), ('Long Pants',-1,70), ('Hat',-1,40), ('Scarf',-1,30), ('Gloves',-1,30), ('Sunglasses',-1,-1), ('Sunscreen',-1,-1)]
-    db.executemany('INSERT INTO clothes(name,temp_min,temp_max) VALUES (?,?,?)', clothes)
+    clothing_cats = [(1,'shirts'),(2,'pants'),(3,'accessories')]
+    db.executemany('INSERT INTO clothing_categories(id,name) VALUES (?,?)', clothing_cats)
+
+    clothes = [('Tank Top',1,1,80,-1), ('Short Sleeve Shirt',1,2,65,80), ('Long Sleeve Shirt',1,3,55,65), ('Sweater',1,4,40,65), ('Jacket',1,6,40,55), ('Hoodie',1,5,40,65), ('Coat',1,7,-1,40), ('Shorts',2,1,70,-1), ('Capri Pants',2,2,60,75), ('Long Pants',2,3,-1,70), ('Hat',3,'',-1,40), ('Scarf',3,'',-1,30), ('Gloves',3,'',-1,30), ('Sunglasses',3,'',-1,-1), ('Sunscreen',3,'',-1,-1)]
+    db.executemany('INSERT INTO clothing_types(name,cat_id,default_rank,default_temp_min,default_temp_max) VALUES (?,?,?,?,?)', clothes)
     db.commit()
 
 @click.command('init_db')

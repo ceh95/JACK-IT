@@ -22,14 +22,14 @@ def index():
     heat_index = getHeatIndex(w.temperature('fahrenheit')['temp'], w.humidity)
 
     db = get_db()
-    dbReturn = db.execute('SELECT c.* FROM user_x_clothes uxc JOIN clothes c on uxc.clothes_id = c.id WHERE uxc.user_id=?', (session['user_id'],)).fetchall()
+    dbReturn = db.execute('SELECT * FROM clothes c WHERE user_id=?', (session['user_id'],)).fetchall()
     
-    clothesList = []
-    for clothes in dbReturn:
-        c = Clothing(clothes['name'], clothes['temp_min'], clothes['temp_max'])
-        clothesList.append(c)
+    # thresholdList = []
+    # for threshold in dbReturn:
+    #     c = Clothing(threshold['name'], threshold['threshold_min'], threshold['threshold_max'])
+    #     thresholdList.append(c)
 
-    prediction = getPrediction(w, clothesList)
+    prediction = getPrediction(w)
 
     return render_template('prediction/index.html', weather=w, heat_index=heat_index)
 
@@ -57,7 +57,7 @@ def getWindChill(T,V):
         ret = T
     return ret
 
-def getPrediction(weather, clothesList):
+def getPrediction(weather):
     # notes: each clothing type will have a temperature range and one or more additional triggers (eg. sunglasses if 
     # sunny, raincoat if raining, etc.). If a user does not have a particular type of clothing, then default to wider
     # range. (ex: no shorts, so suggest next lightest clothes). If the mins/maxes extend into another range, figure
@@ -102,8 +102,8 @@ def getPrediction(weather, clothesList):
     wind_chill_max = getWindChill(heat_index_max, windSpeed)
 
     suggestions = []
-    for c in clothesList:
-        if (c.minTemp == -1 or c.minTemp < wind_chill) and (c.maxTemp == -1 or c.maxTemp >= wind_chill):
-            suggestions.append(c)
-    ret = suggestions
+    # for t in thresholdList:
+    #     if (t.minTemp == -1 or t.minTemp < wind_chill) and (t.maxTemp == -1 or t.maxTemp >= wind_chill):
+    #         suggestions.append(t)
+    # ret = suggestions
     return ret

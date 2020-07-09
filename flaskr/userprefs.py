@@ -61,22 +61,148 @@ def clothing():
         if error is not None:
             flash(error)
         else:
+
+            user_id = session['user_id']
             db = get_db()
 
-            db.execute('DELETE FROM user_x_clothes WHERE user_id=?', (session['user_id'],))
-            db.commit()
+            # 1. get all clothes for user from db and store in tuple set.
+            oldClothesList = db.execute('SELECT c.*, ct.default_rank FROM clothes c JOIN clothing_types ct on c.clothes_type_id = ct.id WHERE user_id = ? ORDER BY c.rank', (user_id,)).fetchall()
+ 
+            newClothesList = []
             for clothes in clothesList:
-                c = db.execute(
-                    'SELECT id FROM clothes WHERE name = ?', (clothes,)
-                ).fetchone()
+                c = db.execute('SELECT * FROM clothing_types WHERE name = ?', (clothes,)).fetchone()
+                newClothesList.append(c)
 
-                if c is not None:
-                    
-                    db.execute(
-                        'INSERT INTO user_x_clothes (user_id, clothes_id) VALUES (?, ?)',
-                        (session["user_id"],c['id'])
-                    )
+            # 2. loop through old ones, check to see if there are any old ones that aren't there anymore.
+            for oldClothes in oldClothesList:
+                found = False
+                for newClothes in newClothesList:
+                    if newClothes['id'] == oldClothes['clothes_type_id']:
+                        found = True
+                
+                if found == False:
+            #       a. if so, find all ranks below and subtract 1 from them.
+                    for o in oldClothesList:
+                        o['rank'] = o['rank'] - 1
+
+            # 3. loop through new ones, see if there are any that weren't in the old ones.
+            for newClothes in newClothesList:
+                found = False
+                for oldClothes in oldClothesList:
+                    if newClothes['id'] == oldClothes['clothes_type_id']:
+                        found = True
+                if found == False:
+                    same = -1
+                    newUserRank = -1
+                    for oldClothes in oldClothesList:
+                        if newClothes['rank'] == oldClothes['default_rank']:
+                            same = oldClothes['rank']
+                            
+                            oldClothes.append(('',session['user_id'], newClothes['id'],oldClothes['temp_min'],oldClothes['temp_max'],oldClothes['rank']))
+                            newClothes['rank'] = oldClothes['rank']
+                            newClothes['']
+                    if same == -1:      # need to insert into rank and push any below it -1      
+            #           make user rank = to one below it, mark as added, find all ranks below and add 1 to them.
+            #   a.  if so, check default ranks of old list to find which clothes should rank below it
+                        for oldClothes in oldClothesList:
+                            if oldClothes['default_rank'] > newClothes['rank']:
+                                if newUserRank == -1:
+                                    newUserRank = oldClothes['rank']
+                                oldClothes['rank'] = oldClothes['rank'] + 1
+            
+            # 2. loop through new changed list, looking for maxes and mins that leave gaps or overlap.
+            for oldClothes in oldClothesList:   
+                currentRank = oldClothes['rank']
+                
+                lowerRankClothes = []
+                evenLowerRankClothes = []
+                for o in oldClothesList:
+                    if o['rank'] > currentRank:
+                        lowerRankClothes.append(o)
+                for o in oldClothesList:
+                    if o['rank'] > (currentRank + 1):
+                        evenLowerRankClothes.append(o)
+                
+                if oldClothes['min'] > lowerRankClothes[0]['max']:     # a gap exists
+                    higherMin = oldClothes['min']
+                    lowerMax = lowerRankClothes[0]['max']
+                    if higherMin > 50 and lowerMax > 50:
+                        #           bth over 50, so extend upper's min to old min.
+                        oldClothes['min'] = lowerMax
+                    elif higherMin <= 50 and lowerMax <= 50:
+                        #           both below 50, s0 extend lower's max to old max.
+                        for o in lowerRankClothes:
+                            o['max'] = higherMin 
+                    else:
+                        #           50 is in the middle, so split the difference between upper and lower.
+                        oldClothes['min'] = 50
+                        for o in lowerRankClothes:
+                            o['max'] = 50
+                else:       # an overlap exists
+                    currentMin = oldClothes['min']
+                    currentMax = oldClothes['max']
+                    lowerMin = lowerRankClothes[0]['min']
+                    lowerMax = lowerRankClothes[0]['max']
+                    evenLowerMin = evenLowerRankClothes[0]['min']
+                    evenLowerMax = evenLowerRankClothes[0]['max']
+
+                    if lowerMin > currentMin:
+                        # lower is totally inside of current (lower rank inside of higher rank)
+                        oldClothes['min'] = lowerMax
+                    elif lowerMax < evenLowerMax:
+                        # lower is totally inside of even lower (higher rank inside of lower rank)
+                        for o in lowerRankClothes:
+                            o['min'] = evenLowerMax
+                    elif currentMin < lowerMax and lowerMin == evenLowerMax:
+                    #   current's min < lower's max ONLY overlap:
+                    #       one was added as lightest yet, so lower's max changes to current's min
+                        for o in lowerRankClothes:
+                            o['max'] = currentMin
+                    elif evenLowerMax > lowerMin and lowerMax == currentMin:
+                    #   evenLower's max > lower's min ONLY overlap:
+                    #       one was added as heaviest yet, so lower's min changes to evenLower's max
+                        for o in lowerRankClothes:
+                            o['min'] = evenLowerMax
+                    else:
+                    #   so overlaps 2
+                    #       current's min changes to lowers' max and evenLowers' max changes to lowers' min
+                        oldClothes['min'] = lowerMax
+                        for o in evenLowerRankClothes:
+                            o['max'] = lowerMin
+
+            #   (if you ever run into multi ple clothes that fit criteria or share a rank, do it to all of them.)
+            #   (if you are adding a new clothing that matches rank of old, match that old rank and don't push anything)
+            #   (if clothing is left with less than 5 degrees, push things around it)
+            # 3. delete all old clothes for user_id.
+            # 4. add new clothes.
+            db.execute('DELETE FROM clothes WHERE user_id=?', (session['user_id'],))
+            
+            db.executemany('INSERT INTO clothes(user_id,clothes_type_id,temp_min,temp_max,rank) VALUES (?,?,?,?,?)', oldClothesList)
+
             db.commit()
+            # for clothes in clothesList:
+            #     c = db.execute(
+            #         'SELECT * FROM clothes WHERE name = ?', (clothes,)
+            #     ).fetchone()
+
+            #     if c is not None:
+                    
+            #         db.execute(
+            #             'INSERT INTO user_x_clothes (user_id, clothes_id) VALUES (?, ?)',
+            #             (session["user_id"],c['id'])
+            #         )
+
+            #         t = db.execute(
+            #             'SELECT * FROM threshold WHERE user_id=? AND clothes_id=?', (session['user_id'],c['id'])
+            #         ).fetchone()
+
+            #         if t is None:   #insert new threshold
+            #             db.execute(
+            #                 'INSERT INTO threshold (user_id, clothes_id, threshold_min, threshold_max) VALUES (?, ?, ?, ?)',
+            #                 (session["user_id"],c['id'],c['temp_min'],c['temp_max'])
+            #             )
+
+            # db.commit()
             return redirect(url_for('index'))
 
 
