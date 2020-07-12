@@ -18,4 +18,12 @@
     <h1>Heat index: {{ heat_index }} </h1>
     <h1>Rain amount: {{ weather.rain['1h'] }} </h1>
     <h1>Snow amount: {{ weather.snow['1h'] }} </h1>
+
+    <h1>Predictions:</h1>
+    
+    <ul id='ulPrediction'>
+        {% for pred in predictions %}
+            <li>{{ pred.clothesType.name}}: {{ pred.minTemp }} -> {{ pred.maxTemp }}</li>
+        {% endfor %}
+    </ul>
 {% endblock %}

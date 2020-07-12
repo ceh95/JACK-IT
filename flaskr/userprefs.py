@@ -21,7 +21,7 @@ def userprefs():
     user = db.execute('SELECT * FROM user WHERE id=?', (session.get('user_id'),)).fetchone()
     locationID = user['location_id']
 
-    clothesList = db.execute('SELECT * FROM clothes c JOIN user_x_clothes uxc ON c.id = uxc.clothes_id WHERE uxc.user_id=?', (session.get('user_id'),)).fetchall()
+    clothesList = db.execute('SELECT * FROM clothes c JOIN clothing_types ct ON c.clothes_type_id = ct.id WHERE c.user_id=?', (session.get('user_id'),)).fetchall()
     return render_template('prefs/userPrefs.html', locationName=locationID, clothes=clothesList)    
 
 @bp.route('/location', methods=('GET', 'POST'))
@@ -69,11 +69,11 @@ def clothing():
 
             # 1. get all clothes for user from db and store in tuple set.
             oldClothesList= []
-            dbReturn = db.execute('SELECT c.*, ct.name, ct.default_temp_min, ct.default_temp_max, ct.id as ct_id, ct.cat_id, ct.default_rank FROM clothes c JOIN clothing_types ct on c.clothes_type_id = ct.id WHERE user_id = ? ORDER BY c.rank', (user_id,)).fetchall()
+            dbReturn = db.execute('SELECT c.* FROM clothes c WHERE user_id = ? ORDER BY c.rank', (user_id,)).fetchall()
             # 0 = id, 1 = user_id, 2 = clothes_type_id, 3 = temp_min, 4 = temp_max, 5 = rank
 
             for d in dbReturn:
-                ct = ClothingType(d['name'],d['default_temp_min'],d['default_temp_max'],d['ct_id'],d['cat_id'],d['default_rank'])
+                ct = ClothingType(d['clothes_type_id'])
                 c = Clothing(d['temp_min'],d['temp_max'],d['id'],d['user_id'],ct,d['rank'])
                 oldClothesList.append(c)
 
@@ -81,7 +81,9 @@ def clothing():
             # 0 = id, 1 = name, 2 = cat_id, 3 = default_rank, 4=default_temp_min, 5=default_temp_max
             for clothes in clothesList:
                 d = db.execute('SELECT * FROM clothing_types WHERE name = ?', (clothes,)).fetchone()
-                ct = ClothingType(d['name'],d['default_temp_min'],d['default_temp_max'],d['ct_id'],d['cat_id'],d['default_rank'])
+                if d is None:
+                    continue
+                ct = ClothingType(d['id'])
                 newClothesList.append(ct)
 
             # 2. loop through old ones, check to see if there are any old ones that aren't there anymore.
@@ -93,8 +95,16 @@ def clothing():
                 
                 if found == False:
             #       a. if so, find all ranks below and subtract 1 from them.
-                    for o in oldClothesList:
-                        o.rank = o.rank - 1
+                    if oldClothes.rank != '':
+                        sameRankList = []
+                        for o in oldClothesList:
+                            if o.clothesType.categoryID == oldClothes.clothesType.categoryID and o.rank == oldClothes.rank:
+                                sameRankList.append(o)
+                        if len(sameRankList) <= 1:
+                            for o in oldClothesList:
+                                if (o.rank != '') and (o.clothesType.categoryID == oldClothes.clothesType.categoryID) and (o.rank > oldClothes.rank):
+                                    o.rank = o.rank - 1
+                    oldClothesList.remove(oldClothes)
 
             # 3. loop through new ones, see if there are any that weren't in the old ones.
             for newClothes in newClothesList:
@@ -106,43 +116,85 @@ def clothing():
                     same = -1
                     newUserRank = -1
                     for oldClothes in oldClothesList:
-                        if newClothes.defaultRank == oldClothes.clothesType.defaultRank:
+                        if (newClothes.categoryID == oldClothes.clothesType.categoryID) and (newClothes.defaultRank == oldClothes.clothesType.defaultRank):
                             same = oldClothes.rank
                             
-                            c = Clothing(oldClothes.minTemp,oldClothes.maxTemp,"",session['user_id'],newClothes.id,oldClothes.rank)
-                            oldClothes.append(c)
+                            c = Clothing(oldClothes.minTemp,oldClothes.maxTemp,"",session['user_id'],newClothes,oldClothes.rank)
+                            oldClothesList.append(c)
                             newClothes.defaultRank = oldClothes.rank
                             #newClothes['']
                     if same == -1:      # need to insert into rank and push any below it -1      
             #           make user rank = to one below it, mark as added, find all ranks below and add 1 to them.
             #   a.  if so, check default ranks of old list to find which clothes should rank below it
-                        for oldClothes in oldClothesList:
-                            if oldClothes.clothesType.defaultRank > newClothes.defaultRank:
-                                if newUserRank == -1:
-                                    newUserRank = oldClothes.rank
-                                oldClothes.rank = oldClothes.rank + 1
-                                
-                        c = Clothing(newClothes.defaultMinTemp,newClothes.defaultMaxTemp,"",session['user_id'],newClothes.id,same)
-                        oldClothes.append(c)
+                        if newClothes.defaultRank == '':
+                            newUserRank = ''
+                        elif len(oldClothesList) <= 0:
+                            newUserRank = 1
+                        else:
+                            someInCategory = False
+                            someRankedLower = False
+                            lowestRankInCategory = 1
+                            for oldClothes in oldClothesList:
+                                # if none in category, newUserRank = 1. If none below it in category, newUserRank = lower than lowest
+                                if oldClothes.clothesType.categoryID == newClothes.categoryID:
+                                    someInCategory = True
+                                    if oldClothes.rank > lowestRankInCategory:
+                                        lowestRankInCategory = oldClothes.rank
+                                    if oldClothes.clothesType.defaultRank > newClothes.defaultRank:
+                                        someRankedLower = True
+                                        if newUserRank == -1:
+                                            newUserRank = oldClothes.rank
+                                        else:
+                                            if oldClothes.rank < newUserRank:
+                                                newUserRank = oldClothes.rank
+                                        oldClothes.rank = oldClothes.rank + 1
+                        
+                            if someInCategory == False:
+                                #there are none in category, so make it rank 1
+                                newUserRank = 1
+                            else:
+                                # there were some in the category
+                                if someRankedLower == False:
+                                    # if there were none in the category with a lower rank, then set it equal to the lowest rank
+                                    newUserRank = lowestRankInCategory + 1
+
+                        c = Clothing(newClothes.defaultMinTemp,newClothes.defaultMaxTemp,"",session['user_id'],newClothes,newUserRank)
                         oldClothesList.append(c)
 
+            for oldClothes in oldClothesList:
+                sameRankList = []
+                for o in oldClothesList:
+                    if (o.clothesType.categoryID == oldClothes.clothesType.categoryID) and (o.rank == oldClothes.rank):
+                        sameRankList.append(o)
 
-            
+                if oldClothes.rank == 1:
+                    oldClothes.maxTemp = -1
+                    if len(sameRankList) == 1:
+                        oldClothes.minTemp = -1
+
             # 2. loop through new changed list, looking for maxes and mins that leave gaps or overlap.
             for oldClothes in oldClothesList:   
                 currentRank = oldClothes.rank
-                
+                if currentRank == '':
+                    continue
+                currentCategory = oldClothes.clothesType.categoryID
+
                 lowerRankClothes = []
                 evenLowerRankClothes = []
                 for o in oldClothesList:
-                    if o.rank > currentRank:
+                    if (o.clothesType.categoryID == currentCategory) and (o.rank > currentRank):
                         lowerRankClothes.append(o)
                 for o in oldClothesList:
-                    if o.rank > (currentRank + 1):
+                    if (o.clothesType.categoryID == currentCategory) and (o.rank > (currentRank + 1)):
                         evenLowerRankClothes.append(o)
                 
+                if len(lowerRankClothes) == 0:
+                    # there is no lower ranked clothing in category, so there can't be a gap or overlap. Set min to -1.
+                    oldClothes.minTemp = -1
+                    continue
+
                 if oldClothes.minTemp > lowerRankClothes[0].maxTemp:     # a gap exists
-                    higherMin = oldClothes.min
+                    higherMin = oldClothes.minTemp
                     lowerMax = lowerRankClothes[0].maxTemp
                     if higherMin > 50 and lowerMax > 50:
                         #           bth over 50, so extend upper's min to old min.
@@ -156,37 +208,62 @@ def clothing():
                         oldClothes.minTemp = 50
                         for o in lowerRankClothes:
                             o.maxTemp = 50
-                else:       # an overlap exists
+                elif (oldClothes.minTemp < lowerRankClothes[0].maxTemp) or (lowerRankClothes[0].maxTemp == -1):       # an overlap exists
                     currentMin = oldClothes.minTemp
                     currentMax = oldClothes.maxTemp
                     lowerMin = lowerRankClothes[0].minTemp
                     lowerMax = lowerRankClothes[0].maxTemp
-                    evenLowerMin = evenLowerRankClothes[0].minTemp
-                    evenLowerMax = evenLowerRankClothes[0].maxTemp
+                    if len(evenLowerRankClothes) == 0:
+                        evenLowerMax = -1
+                        evenLowerMin = -1
+                    else:
+                        evenLowerMax = evenLowerRankClothes[0].maxTemp
+                        evenLowerMin = evenLowerRankClothes[0].minTemp
+                        
 
-                    if lowerMin > currentMin:
+                    if lowerMin >= currentMin and lowerMax <= currentMax:
                         # lower is totally inside of current (lower rank inside of higher rank)
-                        oldClothes.minTemp = lowerMax
-                    elif lowerMax < evenLowerMax:
+                        if lowerMax == -1:
+                            oldClothes.minTemp = lowerRankClothes[0].clothesType.defaultMaxTemp
+                            lowerRankClothes[0].maxTemp = lowerRankClothes[0].clothesType.defaultMaxTemp
+                        else:
+                            oldClothes.minTemp = lowerMax
+                    elif lowerMax <= evenLowerMax and lowerMin >= evenLowerMin:
                         # lower is totally inside of even lower (higher rank inside of lower rank)
                         for o in lowerRankClothes:
-                            o.minTemp = evenLowerMax
+                            if evenLowerMax == -1:
+                                o.minTemp = evenLowerRankClothes[0].clothesType.defaultMaxTemp
+                                evenLowerRankClothes[0].maxTemp = evenLowerRankClothes[0].clothesType.defaultMaxTemp
+                            else:
+                                o.minTemp = evenLowerMax
                     elif currentMin < lowerMax and lowerMin == evenLowerMax:
                     #   current's min < lower's max ONLY overlap:
                     #       one was added as lightest yet, so lower's max changes to current's min
                         for o in lowerRankClothes:
-                            o.maxTemp = currentMin
+                            if currentMin == -1:
+                                o.maxTemp = oldClothes.clothesType.defaultMinTemp
+                                oldClothes.minTemp = oldClothes.clothesType.defaultMinTemp
+                            else:
+                                o.maxTemp = currentMin
                     elif evenLowerMax > lowerMin and lowerMax == currentMin:
                     #   evenLower's max > lower's min ONLY overlap:
                     #       one was added as heaviest yet, so lower's min changes to evenLower's max
                         for o in lowerRankClothes:
-                            o.minTemp = evenLowerMax
+                            if evenLowerMax == -1:
+                                o.minTemp = evenLowerRankClothes[0].clothesType.defaultMaxTemp
+                                evenLowerRankClothes[0].maxTemp = evenLowerRankClothes[0].clothesType.defaultMaxTemp
+                            else:
+                                o.minTemp = evenLowerMax
                     else:
                     #   so overlaps 2
                     #       current's min changes to lowers' max and evenLowers' max changes to lowers' min
                         oldClothes.minTemp = lowerMax
                         for o in evenLowerRankClothes:
-                            o.maxTemp = lowerMin
+                            if lowerMin == -1:
+                                o.maxTemp = lowerRankClothes[0].clothesType.defaultMinTemp
+                                lowerRankClothes[0] = lowerRankClothes[0].clothesType.defaultMinTemp
+                            else:
+                                o.maxTemp = lowerMin
 
             #   (if you ever run into multi ple clothes that fit criteria or share a rank, do it to all of them.)
             #   (if you are adding a new clothing that matches rank of old, match that old rank and don't push anything)
@@ -195,7 +272,11 @@ def clothing():
             # 4. add new clothes.
             db.execute('DELETE FROM clothes WHERE user_id=?', (session['user_id'],))
             
-            db.executemany('INSERT INTO clothes(user_id,clothes_type_id,temp_min,temp_max,rank) VALUES (?,?,?,?,?)', oldClothesList)
+            clothesToAddList = []
+            for c in oldClothesList:
+                clothesToAddList.append((c.user_id,c.clothesType.id,c.minTemp,c.maxTemp,c.rank))
+
+            db.executemany('INSERT INTO clothes(user_id,clothes_type_id,temp_min,temp_max,rank) VALUES (?,?,?,?,?)', clothesToAddList)
 
             db.commit()
             # for clothes in clothesList:

@@ -6,6 +6,7 @@ from flaskr.auth import login_required
 from flaskr.db import get_db
 from flaskr.wrappers import weatherWrapper
 from flaskr.objects.clothing import Clothing
+from flaskr.objects.clothingType import ClothingType
 
 import math
 bp = Blueprint('prediction', __name__)
@@ -24,14 +25,15 @@ def index():
     db = get_db()
     dbReturn = db.execute('SELECT * FROM clothes c WHERE user_id=?', (session['user_id'],)).fetchall()
     
-    # thresholdList = []
-    # for threshold in dbReturn:
-    #     c = Clothing(threshold['name'], threshold['threshold_min'], threshold['threshold_max'])
-    #     thresholdList.append(c)
+    clothesList = []
+    for c in dbReturn:
+        ct = ClothingType(c['clothes_type_id'])
+        c = Clothing(c['temp_min'],c['temp_max'],c['id'],c['user_id'],ct,c['rank'])
+        clothesList.append(c)
 
-    prediction = getPrediction(w)
+    prediction = getPrediction(w, clothesList)
 
-    return render_template('prediction/index.html', weather=w, heat_index=heat_index)
+    return render_template('prediction/index.html', weather=w, heat_index=heat_index, predictions=prediction)
 
 def getHeatIndex(T, RH):
     simple = 0.5 * (T + 61.0 + ((T-68.0)*1.2) + (RH*0.094))
@@ -57,7 +59,7 @@ def getWindChill(T,V):
         ret = T
     return ret
 
-def getPrediction(weather):
+def getPrediction(weather, clothes):
     # notes: each clothing type will have a temperature range and one or more additional triggers (eg. sunglasses if 
     # sunny, raincoat if raining, etc.). If a user does not have a particular type of clothing, then default to wider
     # range. (ex: no shorts, so suggest next lightest clothes). If the mins/maxes extend into another range, figure
@@ -102,8 +104,8 @@ def getPrediction(weather):
     wind_chill_max = getWindChill(heat_index_max, windSpeed)
 
     suggestions = []
-    # for t in thresholdList:
-    #     if (t.minTemp == -1 or t.minTemp < wind_chill) and (t.maxTemp == -1 or t.maxTemp >= wind_chill):
-    #         suggestions.append(t)
-    # ret = suggestions
+    for c in clothes:
+        if (c.minTemp == -1 or c.minTemp < wind_chill) and (c.maxTemp == -1 or c.maxTemp >= wind_chill):
+            suggestions.append(c)
+    ret = suggestions
     return ret
