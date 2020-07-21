@@ -11,7 +11,7 @@
         <label for='ulClothes'>Clothing Options:</label>
         <ul id='ulClothes'>
             {% for clothing in clothes %}
-                <li>{{ clothing['name'] }}: {{ clothing['temp_min'] }} -> {{ clothing['temp_max'] }}. Rank: {{ clothing['rank'] }}</li>
+                <li>{{ clothing['name'] }}: {{ clothing['temp_min'] }} -> {{ clothing['temp_max'] }}.</li>
             {% endfor %}
         </ul>
         <p><a href="/clothing">Change Clothing Preferences</a></p>

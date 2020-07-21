@@ -21,7 +21,7 @@ def userprefs():
     user = db.execute('SELECT * FROM user WHERE id=?', (session.get('user_id'),)).fetchone()
     locationID = user['location_id']
 
-    clothesList = db.execute('SELECT * FROM clothes c JOIN clothing_types ct ON c.clothes_type_id = ct.id WHERE c.user_id=?', (session.get('user_id'),)).fetchall()
+    clothesList = db.execute('SELECT * FROM clothes c JOIN clothing_types ct ON c.clothes_type_id = ct.id WHERE c.user_id=? ORDER BY ct.cat_id, c.rank', (session.get('user_id'),)).fetchall()
     return render_template('prefs/userPrefs.html', locationName=locationID, clothes=clothesList)    
 
 @bp.route('/location', methods=('GET', 'POST'))
@@ -268,4 +268,3 @@ def searchCities(city_string=None):
             ret.append(cityTup)
 
     return json.dumps(ret)
-

@@ -32,3 +32,18 @@ function isEmpty(obj) {
     }
     return true;
 }
+
+function setPreviousSuggestion(_clothesList, _temp) {
+    var previousSuggestion = {
+        clothesList : _clothesList,
+        temp : _temp,
+      };
+
+    window.localStorage.setItem('previousSuggestion', JSON.stringify(previousSuggestion));
+}
+
+function getPreviousSuggestion() {
+    prevSuggestion = JSON.parse(window.localStorage.getItem('previousSuggestion'));
+
+    return prevSuggestion;
+}

@@ -23,7 +23,7 @@ def index():
     heat_index = getHeatIndex(w.temperature('fahrenheit')['temp'], w.humidity)
 
     db = get_db()
-    dbReturn = db.execute('SELECT * FROM clothes c WHERE user_id=?', (session['user_id'],)).fetchall()
+    dbReturn = db.execute('SELECT c.*, ct.cat_id FROM clothes c JOIN clothing_types ct on c.clothes_type_id = ct.id WHERE user_id=? ORDER BY ct.cat_id', (session['user_id'],)).fetchall()
     
     clothesList = []
     for c in dbReturn:
@@ -106,6 +106,12 @@ def getPrediction(weather, clothes):
     suggestions = []
     for c in clothes:
         if (c.minTemp == -1 or c.minTemp < wind_chill) and (c.maxTemp == -1 or c.maxTemp >= wind_chill):
-            suggestions.append(c)
+            if c.clothesType.status != "":
+                if c.clothesType.status in status.lower():
+                    suggestions.append(c)
+            else:
+                suggestions.append(c)
+
+    # check for mins/maxes that are different suggestions
     ret = suggestions
     return ret

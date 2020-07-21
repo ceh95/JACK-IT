@@ -17,6 +17,10 @@ CREATE TABLE clothing_types(
     default_rank INTEGER,
     default_temp_min INTEGER NOT NULL,
     default_temp_max INTEGER NOT NULL,
+    status TEXT,
+    rain_only TEXT,
+    snow_only TEXT,
+    windy_only TEXT,
     FOREIGN KEY (cat_id)
        REFERENCES clothing_categories (id)
 );

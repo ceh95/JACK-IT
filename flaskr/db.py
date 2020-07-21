@@ -32,8 +32,8 @@ def init_clothing_objects():
     clothing_cats = [(1,'shirts'),(2,'pants'),(3,'accessories')]
     db.executemany('INSERT INTO clothing_categories(id,name) VALUES (?,?)', clothing_cats)
 
-    clothes = [('Tank Top',1,1,80,-1), ('Short Sleeve Shirt',1,2,65,80), ('Long Sleeve Shirt',1,3,55,65), ('Sweater',1,4,40,65), ('Jacket',1,6,40,55), ('Hoodie',1,5,40,65), ('Coat',1,7,-1,40), ('Shorts',2,1,70,-1), ('Capri Pants',2,2,60,75), ('Long Pants',2,3,-1,70), ('Hat',3,'',-1,40), ('Scarf',3,'',-1,30), ('Gloves',3,'',-1,30), ('Sunglasses',3,'',-1,-1), ('Sunscreen',3,'',-1,-1)]
-    db.executemany('INSERT INTO clothing_types(name,cat_id,default_rank,default_temp_min,default_temp_max) VALUES (?,?,?,?,?)', clothes)
+    clothes = [('Tank Top',1,1,80,-1,'','','',''), ('Short Sleeve Shirt',1,2,65,80,'','','',''), ('Long Sleeve Shirt',1,3,55,65,'','','',''), ('Sweater',1,4,40,65,'','','',''), ('Jacket',2,'',40,55,'','','',''), ('Hoodie',1,5,40,65,'','','',''), ('Coat',2,'',-1,40,'','','',''), ('Shorts',3,1,70,-1,'','','',''), ('Capri Pants',3,2,60,75,'','','',''), ('Long Pants',3,3,-1,70,'','','',''), ('Hat',4,'',-1,40,'','','',''), ('Scarf',4,'',-1,30,'','','',''), ('Gloves',4,'',-1,30,'','','',''), ('Sunglasses',4,'',-1,-1,'sunny','','','')]
+    db.executemany('INSERT INTO clothing_types(name,cat_id,default_rank,default_temp_min,default_temp_max,status,rain_only,snow_only,windy_only) VALUES (?,?,?,?,?,?,?,?,?)', clothes)
     db.commit()
 
 @click.command('init_db')

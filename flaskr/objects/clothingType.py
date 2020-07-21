@@ -11,6 +11,10 @@ class ClothingType:
         self.id = id
         self.categoryID = dbReturn['cat_id']
         self.defaultRank = dbReturn['default_rank']
+        self.status = dbReturn['status']
+        self.rainy = dbReturn['rain_only']
+        self.snowy = dbReturn['snow_only']
+        self.windy = dbReturn['windy_only']
 
     # def __init__(self, name, defaultMinTemp, defaultMaxTemp, id="", categoryID="", defaultRank=""):
     #     self.name = name

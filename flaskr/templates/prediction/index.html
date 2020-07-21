@@ -8,6 +8,12 @@
 {% endblock %}
 
 {% block content %}
+
+    <h1>Predictions:</h1>
+    {% for pred in predictions %}
+        <h2 class="clothingPrediction" style="text-align:center">{{ pred.clothesType.name}}</h2></div>
+    {% endfor %}
+
     <h1>Current Temperature: {{ weather.temperature('fahrenheit')['temp'] }}</h1>
     <h1>Temperature Min: {{ weather.temperature('fahrenheit')['temp_min'] }}</h1>
     <h1>Temperature Max: {{ weather.temperature('fahrenheit')['temp_max'] }}</h1>
@@ -19,11 +25,18 @@
     <h1>Rain amount: {{ weather.rain['1h'] }} </h1>
     <h1>Snow amount: {{ weather.snow['1h'] }} </h1>
 
-    <h1>Predictions:</h1>
-    
-    <ul id='ulPrediction'>
-        {% for pred in predictions %}
-            <li>{{ pred.clothesType.name}}: {{ pred.minTemp }} -> {{ pred.maxTemp }}</li>
-        {% endfor %}
-    </ul>
+    <script type=text/javascript>
+        window.onload = function(){
+            var elements = document.getElementsByClassName("clothingPrediction");
+            var clothes=[];
+            for (i=0; i<elements.length;i++) {
+                    clothes.push(elements[i].innerHTML);
+            }
+
+            setPreviousSuggestion(clothes,0);
+
+            var previousPrediction = getPreviousSuggestion();
+            alert(previousPrediction.clothesList + "  " +  previousPrediction.temp);
+        };
+    </script>
 {% endblock %}
