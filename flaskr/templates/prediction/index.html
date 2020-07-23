@@ -8,6 +8,19 @@
 {% endblock %}
 
 {% block content %}
+    <div id="previousDialog" class="modal">
+        <div class="modal-content">
+            <p>Let's talk about your last suggestion!</p>
+            <label for="tempP">For this temperature:</label>
+            <p id="tempP"></p>
+            <p>Here's what we suggested:</p>
+            <div id="prevSuggestionsList">
+            </div>
+            <p>Once you're done making changes click OK</p>
+            <button onclick="closeModal()">OK</button>
+        </div>
+    </div>
+
 
     <h1>Predictions:</h1>
     {% for pred in predictions %}
@@ -26,17 +39,54 @@
     <h1>Snow amount: {{ weather.snow['1h'] }} </h1>
 
     <script type=text/javascript>
+    
+        var modal = document.getElementById("previousDialog");
+        function tooHot(clothesID) {
+            alert("It was too hot for " + clothesID);
+        };
+
+        function tooCold(clothesID) {
+            alert("It was too cold for " + clothesID);
+        };
+
+        function closeModal() {
+            modal.style.display = "none";
+        };
+
         window.onload = function(){
             var elements = document.getElementsByClassName("clothingPrediction");
             var clothes=[];
+            
+            document.getElementById("tempP").innerText = "{{ weather.temperature("fahrenheit")["temp"] }}";
+
             for (i=0; i<elements.length;i++) {
-                    clothes.push(elements[i].innerHTML);
-            }
+                clothes.push(elements[i].innerHTML);
+            }     
 
-            setPreviousSuggestion(clothes,0);
+            {% for pred in predictions %}
+                var predElement = document.createElement("div");
+                var predTextElement = document.createElement("p");
+                var tooHotElement = document.createElement("button");
+                var tooColdElement = document.createElement("button");
 
-            var previousPrediction = getPreviousSuggestion();
-            alert(previousPrediction.clothesList + "  " +  previousPrediction.temp);
+                predTextElement.innerText = "{{ pred.clothesType.name}}";
+
+                tooHotElement.innerHTML = "Too hot for this";
+                tooHotElement.onclick = function() { tooHot({{ pred.id}}); };
+
+                tooColdElement.innerHTML = "Too cold for this";
+                tooColdElement.onclick = function() { tooCold({{ pred.id}}); };
+
+                predElement.appendChild(predTextElement);
+                predElement.appendChild(tooHotElement);
+                predElement.appendChild(tooColdElement);
+                var predListElement = document.getElementById("prevSuggestionsList");
+                predListElement.appendChild(predElement);
+            {% endfor %}
+            
+            modal.style.display = "block";
+
+            setPreviousSuggestion(clothes,{{ weather.temperature("fahrenheit")["temp"] }});
         };
     </script>
 {% endblock %}
