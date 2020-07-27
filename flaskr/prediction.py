@@ -9,6 +9,7 @@ from flaskr.objects.clothing import Clothing
 from flaskr.objects.clothingType import ClothingType
 
 import math
+import json
 bp = Blueprint('prediction', __name__)
 
 @bp.route('/')
@@ -60,27 +61,6 @@ def getWindChill(T,V):
     return ret
 
 def getPrediction(weather, clothes):
-    # notes: each clothing type will have a temperature range and one or more additional triggers (eg. sunglasses if 
-    # sunny, raincoat if raining, etc.). If a user does not have a particular type of clothing, then default to wider
-    # range. (ex: no shorts, so suggest next lightest clothes). If the mins/maxes extend into another range, figure
-    # out what to do with that.
-    #
-    # ranges:
-    #   Tank Top: above 80
-    #   Short Sleeve Shirt: above 65
-    #   Long Sleeve Shirt: between 55 and 64
-    #   Sweater: between 40 and 64
-    #   Hoodie: between 40 and 64
-    #   Jacket: between 40 and 55
-    #   Coat: below 40
-    #   Shorts: above 70
-    #   Capri Pants: between 60 and 75
-    #   Long Pants: below 70
-    #   Hat: below 40
-    #   Scarf: below 30 or windy
-    #   Gloves: below 30 
-    #   Sunglasses: sunny
-    #   Sunscreen: sunny 
     ret = ''
     temp = weather.temperature('fahrenheit')['temp']
     tempMin = weather.temperature('fahrenheit')['temp_min']
@@ -115,3 +95,43 @@ def getPrediction(weather, clothes):
     # check for mins/maxes that are different suggestions
     ret = suggestions
     return ret
+
+@bp.route("/tooHot", methods=["POST"])
+@login_required
+def tooHot():
+    clothingID = request.form["clothing_id"]
+    temp = request.form["temp"]
+    userID = session["user_id"]
+    ret = ""
+
+    db = get_db()
+    clothing = db.execute('SELECT c.*, ct.name FROM clothes c JOIN clothing_types ct on c.clothes_type_id = ct.id WHERE user_id=? and c.id=?', (userID,clothingID)).fetchone()
+    
+    if clothing['temp_max'] == -1:
+        ret = "ERR_MAX"
+    elif clothing['temp_min'] >= (float(temp) -5):
+        ret = "ERR_MIN_TOO_CLOSE"
+    else:
+        ret = clothing["name"]
+
+    return json.dumps(ret)
+    
+@bp.route("/tooCold", methods=["POST"])
+@login_required
+def tooCold():
+    clothingID = request.form["clothing_id"]
+    temp = request.form["temp"]
+    userID = session["user_id"] 
+    ret = ""
+
+    db = get_db()
+    clothing = db.execute('SELECT c.*, ct.name FROM clothes c JOIN clothing_types ct on c.clothes_type_id = ct.id WHERE user_id=? and c.id=?', (userID,clothingID)).fetchone()
+    
+    if clothing['temp_min'] == -1:
+        ret = "ERR_MIN"
+    elif clothing['temp_max'] >= (float(temp) +5):
+        ret = "ERR_MAX_TOO_CLOSE"
+    else:
+        ret = clothing["name"]
+
+    return json.dumps(ret)

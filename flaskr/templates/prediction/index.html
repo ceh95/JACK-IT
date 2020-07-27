@@ -41,12 +41,48 @@
     <script type=text/javascript>
     
         var modal = document.getElementById("previousDialog");
-        function tooHot(clothesID) {
-            alert("It was too hot for " + clothesID);
+        function tooHot(clothesID, temp) {
+            data = "clothing_id="+clothesID+"&temp="+temp;
+            makePostRequest("/tooHot", tooHotAlert, data);
         };
 
-        function tooCold(clothesID) {
-            alert("It was too cold for " + clothesID);
+        function tooHotAlert(httpRequest) {
+            if (httpRequest.readyState === XMLHttpRequest.DONE) {
+                if(httpRequest.status === 200) {
+                    var retMessage = JSON.parse(httpRequest.responseText);
+                    var message = "";
+                    if (retMessage === "ERR_MAX") {
+                        message = "You don't have any clothes that are cooler than this, so we can't suggest anything else to make you cooler.";
+                    } else {
+                        message = "Successfully cooled down " + retMessage;
+                    }
+                    alert(message);
+                } else {
+                    alert("There was a problem cooling down this item of clothing: " + httpRequest.status);
+                }
+            }
+        };
+
+        function tooCold(clothesID,temp) {
+            data = "clothing_id="+clothesID+"&temp="+temp;
+            makePostRequest("/tooCold", tooColdAlert, data);
+        };
+
+        function tooColdAlert(httpRequest) {
+            if (httpRequest.readyState === XMLHttpRequest.DONE) {
+                if(httpRequest.status === 200) {
+                    var retMessage = JSON.parse(httpRequest.responseText);
+                    var message = "";
+                    if (retMessage === "ERR_MIN") {
+                        message = "You don't have any clothes that are warmer than this, so we can't suggest anything else to make you warmer.";
+                    } else {
+                        message = "Successfully warmed up " + retMessage;
+                    }
+                    alert(message);
+                } else {
+                    alert("There was a problem warming up this item of clothing: " + httpRequest.status);
+                }
+            }
         };
 
         function closeModal() {
@@ -72,10 +108,10 @@
                 predTextElement.innerText = "{{ pred.clothesType.name}}";
 
                 tooHotElement.innerHTML = "Too hot for this";
-                tooHotElement.onclick = function() { tooHot({{ pred.id}}); };
+                tooHotElement.onclick = function() { tooHot({{ pred.id}}, {{ weather.temperature("fahrenheit")["temp"] }}); };
 
                 tooColdElement.innerHTML = "Too cold for this";
-                tooColdElement.onclick = function() { tooCold({{ pred.id}}); };
+                tooColdElement.onclick = function() { tooCold({{ pred.id}}, {{ weather.temperature("fahrenheit")["temp"] }}); };
 
                 predElement.appendChild(predTextElement);
                 predElement.appendChild(tooHotElement);
