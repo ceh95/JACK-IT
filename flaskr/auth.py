@@ -6,7 +6,11 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from flaskr.db import get_db
 
-bp = Blueprint('auth', __name__, url_prefix='/auth')
+bp = Blueprint('auth', __name__)
+
+@bp.route('/')
+def index():
+    return render_template('auth/index.html')
 
 @bp.route('/register', methods=('GET', 'POST'))
 def register():
@@ -65,7 +69,7 @@ def login():
             session.clear()
             session['user_id'] = user['id']
             session['location_id'] = user['location_id']
-            return redirect(url_for('index'))
+            return redirect(url_for('prediction.prediction'))
 
         flash(error)
 

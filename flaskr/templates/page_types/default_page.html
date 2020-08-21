@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% include 'template_controls/nav.html' %}
+
+{% block header %}
+    <h1>{% block title %}{% endblock %}</h1>
+    {% if g.user %}
+        <a class="action" href="{{ url_for('userprefs.userprefs') }}">User Preferences</a>
+    {% endif %}
+{% endblock %}
+
+{% block content %} {% endblock %}

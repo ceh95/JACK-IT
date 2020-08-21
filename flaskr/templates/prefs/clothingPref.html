@@ -1,8 +1,5 @@
-{% extends 'base.html' %}
-
-{% block header %}
-    <h1>{% block title %}Set Clothing{% endblock %}</h1>
-{% endblock %}
+{% extends 'page_types/no_nav_page.html' %}
+{% block title %}Set Clothing{% endblock %}</h1>
 
 {% block content %}
     <form id="clothesPrefForm" method="post">
@@ -10,7 +7,7 @@
         <p>Now it's time to tell us what clothing options you have.</p>
 
         <div class="shirt-choice">
-            <h1>What shirt options do you have?</h1>
+            <h1>What shirt options do you have?</h1> 
         </div>
         <div class="pants-choice hidden">
             <h1>What pants options do you have?</h1>

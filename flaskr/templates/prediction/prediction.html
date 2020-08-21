@@ -1,13 +1,8 @@
-{% extends 'base.html' %}
-
-{% block header %}
-    <h1>{% block title %}Weather Prediction{% endblock %}</h1>
-    {% if g.user %}
-        <a class="action" href="{{ url_for('userprefs.userprefs') }}">User Preferences</a>
-    {% endif %}
-{% endblock %}
+{% extends 'page_types/default_page.html' %}
+{% block title %}Weather Prediction{% endblock %}
 
 {% block content %}
+<div class="title_screen">
     <div id="previousDialog" class="modal">
         <div class="modal-content">
             <p>Let's talk about your last suggestion!</p>
@@ -93,36 +88,47 @@
             var elements = document.getElementsByClassName("clothingPrediction");
             var clothes=[];
             
-            document.getElementById("tempP").innerText = "{{ weather.temperature("fahrenheit")["temp"] }}";
+            var prevObject = JSON.parse(window.localStorage.getItem('previousSuggestion'));
+            var prevTemp = prevObject.temp;
+            document.getElementById("tempP").innerText = prevTemp;
 
-            for (i=0; i<elements.length;i++) {
-                clothes.push(elements[i].innerHTML);
-            }     
+            var prevClothes = prevObject.clothesList;  
+            if (prevClothes[0]['id'] == null) {
+                {% for pred in predictions %}   
+                    clothes.push({id:{{ pred.id }}, name:'{{ pred.clothesType.name }}'});
+                {% endfor %}
+                setPreviousSuggestion(clothes,{{ weather.temperature("fahrenheit")["temp"] }});
+            } else {
+                for (i=0; i<prevClothes.length;i++) {
+                    var predElement = document.createElement("div");
+                    var predTextElement = document.createElement("p");
+                    var tooHotElement = document.createElement("button");
+                    var tooColdElement = document.createElement("button");
 
-            {% for pred in predictions %}
-                var predElement = document.createElement("div");
-                var predTextElement = document.createElement("p");
-                var tooHotElement = document.createElement("button");
-                var tooColdElement = document.createElement("button");
+                    predTextElement.innerText = prevClothes[i]['name'];
 
-                predTextElement.innerText = "{{ pred.clothesType.name}}";
+                    tooHotElement.innerHTML = "Too hot for this";
+                    var tempID = prevClothes[i]['id'];
+                    tooHotElement.onclick = function() { tooHot(tempID, prevTemp); };
 
-                tooHotElement.innerHTML = "Too hot for this";
-                tooHotElement.onclick = function() { tooHot({{ pred.id}}, {{ weather.temperature("fahrenheit")["temp"] }}); };
+                    tooColdElement.innerHTML = "Too cold for this";
+                    tooColdElement.onclick = function() { tooCold(tempID, prevTemp); };
 
-                tooColdElement.innerHTML = "Too cold for this";
-                tooColdElement.onclick = function() { tooCold({{ pred.id}}, {{ weather.temperature("fahrenheit")["temp"] }}); };
+                    predElement.appendChild(predTextElement);
+                    predElement.appendChild(tooHotElement);
+                    predElement.appendChild(tooColdElement);
+                    var predListElement = document.getElementById("prevSuggestionsList");
+                    predListElement.appendChild(predElement);
+                }
+                
+                modal.style.display = "block";
 
-                predElement.appendChild(predTextElement);
-                predElement.appendChild(tooHotElement);
-                predElement.appendChild(tooColdElement);
-                var predListElement = document.getElementById("prevSuggestionsList");
-                predListElement.appendChild(predElement);
-            {% endfor %}
-            
-            modal.style.display = "block";
-
-            setPreviousSuggestion(clothes,{{ weather.temperature("fahrenheit")["temp"] }});
+                {% for pred in predictions %}   
+                    clothes.push({id:{{ pred.id }}, name:'{{ pred.clothesType.name }}'});
+                {% endfor %}
+                setPreviousSuggestion(clothes,{{ weather.temperature("fahrenheit")["temp"] }});
+            }
         };
     </script>
+    </div>
 {% endblock %}

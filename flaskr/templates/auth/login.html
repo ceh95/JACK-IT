@@ -1,12 +1,10 @@
-{% extends 'base.html' %}
-
-{% block header %}
-    <h1>{% block title %}Log in{% endblock %}</h1>
-{% endblock %}
+{% extends 'page_types/no_nav_page.html' %}
+{% block title %}Log in{% endblock %}
 
 {% block content %}
     <form method="post">
-        <label for="username">Username</label>
+        <div class="background_image_faded"></div>
+        <label class="blackbar_impact" for="username">Username</label>
         <input name="username" id="username" required>
         <label for="password">Password</label>
         <input type="password" name="password" id="pasword" required>

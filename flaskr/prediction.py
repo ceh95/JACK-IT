@@ -12,9 +12,9 @@ import math
 import json
 bp = Blueprint('prediction', __name__)
 
-@bp.route('/')
+@bp.route('/prediction')
 @login_required
-def index():
+def prediction():
     owm = weatherWrapper.getOWM()
     mgr = owm.weather_manager()
 
@@ -34,7 +34,7 @@ def index():
 
     prediction = getPrediction(w, clothesList)
 
-    return render_template('prediction/index.html', weather=w, heat_index=heat_index, predictions=prediction)
+    return render_template('prediction/prediction.html', weather=w, heat_index=heat_index, predictions=prediction)
 
 def getHeatIndex(T, RH):
     simple = 0.5 * (T + 61.0 + ((T-68.0)*1.2) + (RH*0.094))
@@ -105,14 +105,18 @@ def tooHot():
     ret = ""
 
     db = get_db()
-    clothing = db.execute('SELECT c.*, ct.name FROM clothes c JOIN clothing_types ct on c.clothes_type_id = ct.id WHERE user_id=? and c.id=?', (userID,clothingID)).fetchone()
-    
+    clothing = db.execute('SELECT c.*, ct.name, ct.cat_id FROM clothes c JOIN clothing_types ct on c.clothes_type_id = ct.id WHERE user_id=? and c.id=?', (userID,clothingID)).fetchone()
+    rank = clothing['rank'] -1
+    clothingAbove = db.execute('SELECT c.*, ct.name FROM clothes c JOIN clothing_types ct on c.clothes_type_id = ct.id WHERE user_id=? and c.rank=? and ct.cat_id=?', (userID,rank,clothing['cat_id'])).fetchone()
     if clothing['temp_max'] == -1:
         ret = "ERR_MAX"
     elif clothing['temp_min'] >= (float(temp) -5):
         ret = "ERR_MIN_TOO_CLOSE"
     else:
-        ret = clothing["name"]
+        db.execute('UPDATE clothes SET temp_max = ? WHERE id=?', (float(temp) - .1, clothing['id']))
+        db.execute('UPDATE clothes SET temp_min = ? WHERE id=?', (float(temp) - .1, clothingAbove['id']))
+        db.commit()
+        ret = clothingAbove['name']
 
     return json.dumps(ret)
     
@@ -125,13 +129,17 @@ def tooCold():
     ret = ""
 
     db = get_db()
-    clothing = db.execute('SELECT c.*, ct.name FROM clothes c JOIN clothing_types ct on c.clothes_type_id = ct.id WHERE user_id=? and c.id=?', (userID,clothingID)).fetchone()
-    
+    clothing = db.execute('SELECT c.*, ct.name, ct.cat_id FROM clothes c JOIN clothing_types ct on c.clothes_type_id = ct.id WHERE user_id=? and c.id=?', (userID,clothingID)).fetchone()
+    rank = clothing['rank'] + 1
+    clothingBelow = db.execute('SELECT c.*, ct.name FROM clothes c JOIN clothing_types ct on c.clothes_type_id = ct.id WHERE user_id=? and c.rank=? and ct.cat_id=?', (userID,rank,clothing['cat_id'])).fetchone()
     if clothing['temp_min'] == -1:
         ret = "ERR_MIN"
     elif clothing['temp_max'] >= (float(temp) +5):
         ret = "ERR_MAX_TOO_CLOSE"
     else:
-        ret = clothing["name"]
+        db.execute('UPDATE clothes SET temp_min = ? WHERE id=?', (temp, clothing['id']))
+        db.execute('UPDATE clothes SET temp_max = ? WHERE id=?', (temp, clothingBelow['id']))
+        db.commit()
+        ret = clothingBelow['name']
 
     return json.dumps(ret)
