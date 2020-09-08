@@ -1,0 +1,54 @@
+{% extends 'page_types/no_nav_page.html' %}
+{% block title %}Register{% endblock %}
+
+{% block content %}
+  <div class="background_image_faded"></div>
+  <div class="overlay_box">
+    <h1 style="text-align:center">Step 2 of 3</h1>
+    <p style="font-size:x-large;">Choose your location:</p>
+    <p>This is the location that we will use to predict the weather for you. You can always change this later.</p>
+    <form method="post">
+      <label for="city">1. Search for your city/town's name here:</label>
+      <input name="city" id="city">
+      <button id="searchLoc" type="button" onclick="searchCities()">Search Cities</button>
+      <label for="locList">2. Choose the city from the following results:</label>
+      <select name="locList" id="locList">
+      </select>
+      <input class="blue_btn" type="submit" value="Next">
+    </form>
+  </div>
+
+  <script type=text/javascript>
+
+
+    function searchCities() {
+        var citySearchString = document.getElementById('city').value;
+        makeGetRequest("/searchcities/"+citySearchString+"/", populateCityResults);
+    }
+
+    function populateCityResults(httpRequest) {
+        if (httpRequest.readyState === XMLHttpRequest.DONE) {
+            if (httpRequest.status === 200) {
+                var info = JSON.parse(httpRequest.responseText);
+                if (isEmpty(info)) {
+                    alert("There were no results.");
+                } else {
+                    var selectElement = document.getElementById("locList");
+                    var i, L = selectElement.options.length - 1;
+                        for(i = L; i >= 0; i--) {
+                            selectElement.remove(i);
+                        }
+                    for (index = 0; index < info.length; ++index) {
+                        var cityOpt = new Option(info[index][1] + ", " + info[index][2], info[index][0]);
+                        selectElement.append(cityOpt);
+                    }
+                }
+            } else {
+                alert("There was an issue populating the city results.");
+            }
+        }
+    }
+
+  </script>
+
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends 'page_types/no_nav_page.html' %}
+{% block title %}Register{% endblock %}
+
+{% block content %}
+  <div class="background_image_faded"></div>
+  <div class="overlay_box">
+    <h1 style="text-align:center">Registration complete</h1>
+    <p style="font-size:x-large;">OK your account is all set up now. You can change these settings later in your user preferences.</p>
+    <a class="yellow_btn" href="{{ url_for('prediction.prediction') }}" style="margin-top:20px;">Get Started</a>
+{% endblock %}

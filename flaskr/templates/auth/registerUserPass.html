@@ -1,0 +1,20 @@
+{% extends 'page_types/no_nav_page.html' %}
+{% block title %}Register{% endblock %}
+
+{% block content %}
+  <div class="background_image_faded"></div>
+  <div class="overlay_box">
+    <h1 style="text-align:center">Step 1 of 3</h1>
+    <p>JACK-IT combines all of the current weather conditions to give you the perfect advice on what to wear so you are dressed perfectly for the day!</p>
+    <p style="font-size:x-large;">First choose a username and password</p>
+    <form method="post">
+      <div class="settings">
+        <label >Username:</label>
+        <input name="username" id="username" required>
+        <label >Password:</label>
+        <input type="password" name="password" id="password" required>
+      </div>
+      <input class="blue_btn" type="submit" value="Next">
+    </form>
+  </div>
+{% endblock %}

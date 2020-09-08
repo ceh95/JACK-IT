@@ -1,5 +1,5 @@
 body { margin: 0 auto; }
-h1 { font-family: serif; color: #377ba8; margin: 1rem 0; }
+h1 { font-family: arial black; color: black; margin: 1rem 0; font-size: xxx-large; border-bottom: 1px solid black;}
 a { color: #377ba8; }
 hr { border: none; border-top: 1px solid lightgray; }
 nav { background: lightgray; display: flex; align-items: center; padding: 0 0.5rem; }
@@ -12,7 +12,7 @@ nav ul li a, nav ul li span, header .action { display: block; padding: 0.5rem; }
 .flash { margin: 1em 0; padding: 1em; background: #cae6f6; border: 1px solid #377ba8; }
 .content:last-child { margin-bottom: 0; }
 .content form { margin: 1em 0; display: flex; flex-direction: column; }
-.content label { font-weight: bold; margin-bottom: 0.5em; }
+.content label { font-family: arial black; margin-bottom: 0.5em; }
 .content input, .content textarea { margin-bottom: 1em; }
 .content textarea { min-height: 12em; resize: vertical; }
 input.danger { color: #cc2f2e; }
@@ -28,9 +28,9 @@ input[type=submit] { align-self: start; min-width: 10em; }
   
   .grid-item {
     background-color: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(0, 0, 0, 0.8);
+    border: 2px solid black;
     padding: 20px;
-    font-size: 30px;
+    font-size: 20px;
     text-align: center;
   }
     
@@ -78,7 +78,8 @@ input[type=submit] { align-self: start; min-width: 10em; }
   }
 
   .background_image_faded {
-    opacity: 50%;
+    filter: blur(8px);
+    -webkit-filter: blur(8px);
     content: "";
     background-image: url('/static/img/logo_no_words.png');
     background-color: #eeeeee;
@@ -101,6 +102,29 @@ input[type=submit] { align-self: start; min-width: 10em; }
     position:relative;
   }
 
+  .overlay_box {
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(255, 255, 0, 0.8); /* yellow w/opacity/see-through */
+    font-family: arial black;
+    color: black;
+    border: 3px solid black;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    width: 40%;
+    padding: 20px;
+  }
+
+  .blue_btn {
+    color: black;
+    font-family: arial black;
+    border: none;
+    background-color: rgba(153, 191,299,100);
+    border-radius:5px;
+  }
+
   a.yellow_btn {
     color:black;
     font-family:Impact;
@@ -114,4 +138,27 @@ input[type=submit] { align-self: start; min-width: 10em; }
     text-align:center;
     text-decoration:none;
     position:relative;
+  }
+
+  div.settings {
+    display:grid;
+    grid-template-columns: max-content max-content;
+    grid-gap:5px;
+  }
+  div.settings label       { 
+    text-align:right; 
+  }
+
+  .modal {
+    background-color: rgba(0,0,0,0.4); /* Transparent dimmed overlay */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: table;
+  }
+  
+  .modal.hidden {
+    display: none;
   }

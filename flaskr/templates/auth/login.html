@@ -1,13 +1,17 @@
 {% extends 'page_types/no_nav_page.html' %}
-{% block title %}Log in{% endblock %}
 
 {% block content %}
-    <form method="post">
-        <div class="background_image_faded"></div>
-        <label class="blackbar_impact" for="username">Username</label>
-        <input name="username" id="username" required>
-        <label for="password">Password</label>
-        <input type="password" name="password" id="pasword" required>
-        <input type="submit" value="Log in">
-    </form>
+    <div class="background_image_faded"></div>
+    <div class="overlay_box">
+        <h1>Log In</h1>
+        <form method="post">
+            <div class="settings">
+                <label>Username:</label>
+                <input name="username" id="username" required>
+                <label>Password:</label>
+                <input type="password" name="password" id="pasword" required>
+            </div>
+            <input class="blue_btn" type="submit" value="Log in">
+        </form>
+    </div>
 {% endblock %}
